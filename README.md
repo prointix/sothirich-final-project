@@ -19,18 +19,18 @@ Sign In screen Please design email and password only
 
 ## Project tasks:
 
-- Setup project structure
-- Setup naviagate (Stack, Tab, Drawer)
-- Auth context 
-- Setup `Apollo Client`
-- Customer
-  - login
-  - register
-- Home screen
-- Product detail (show variantion)
-- Product search
-- Product filter
-- Product add to cart
-- Cart list
-- Check out
-- Payment
+- [ ] Setup project structure
+- [ ] Setup navigation (Stack, Tab, Drawer)
+- [ ] Auth context 
+- [ ] Setup `Apollo Client`
+- [ ] Customer
+  - [ ] login
+  - [ ] register
+- [ ] Home screen
+- [ ] Product detail (show variation)
+- [ ] Product search
+- [ ] Product filter
+- [ ] Product add to cart
+- [ ] Cart list
+- [ ] Check out
+- [ ] Payment
