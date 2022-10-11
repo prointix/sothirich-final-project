@@ -1,4 +1,4 @@
-import {View, Text, StyleSheet, Pressable} from 'react-native';
+import {View, Text, StyleSheet, Pressable, Image} from 'react-native';
 import {
   DrawerContentScrollView,
   DrawerItemList,
@@ -45,5 +45,11 @@ const styles = StyleSheet.create({
   },
   text: {
     color: COLORS.primary,
+  },
+  img: {
+    width: 100,
+    height: 100,
+    borderRadius: 100,
+    resizeMode: 'contain',
   },
 });

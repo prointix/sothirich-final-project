@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   Text,
   SafeAreaView,
@@ -6,20 +6,40 @@ import {
   View,
   Pressable,
   TextInput,
-  Image,
 } from 'react-native';
 import {COLORS} from '../../../theme/Color';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {getProducts} from '../../../services/auth';
+import {useProducts} from '../../../services/auth';
 import {FlatGrid} from 'react-native-super-grid';
 import Spinner from 'react-native-loading-spinner-overlay';
+import DropDownPicker from 'react-native-dropdown-picker';
+import GridItem from '../../../components/GridItem';
+import {useAuth} from '../../../contexts/auth';
 
-const Product = ({navigation, route}) => {
-  const id = route.params.id;
-  const {data, loading, error} = getProducts(id);
-  const items = data?.search.items;
+const Products = ({navigation, route}) => {
+  const [open, setOpen] = useState(false);
+  const [list, setList] = useState([
+    {label: 'Name by ASC', value: 'nameA'},
+    {label: 'Name by DESC', value: 'nameZ'},
+    {label: 'Lowest Price', value: 'price0'},
+    {label: 'Highest Price', value: 'price9'},
+  ]);
+  const [value, setValue] = useState();
+  const {itemsCart} = useAuth();
 
-  // console.log(items.productAsset[0].preview);
+  const ids = route.params.id;
+  const [items, setItems] = useState([]);
+  const {loading, data} = useProducts(ids, value);
+
+  useEffect(() => {
+    if (loading === false && data) {
+      setItems(data.search.items);
+    }
+  }, [loading, data]);
+
+  onItemClicked = slug => {
+    navigation.navigate('Product', {productSlug: slug});
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -32,32 +52,50 @@ const Product = ({navigation, route}) => {
           <Text style={styles.text}>Der</Text>
           <Text>Tinh</Text>
         </Text>
-        <Pressable>
+        <Pressable onPress={() => navigation.navigate('Cart')}>
           <Ionicons name="cart-outline" color={'black'} size={32} />
+          {!itemsCart || itemsCart === '0' ? null : (
+            <View style={styles.notify} />
+          )}
         </Pressable>
       </View>
       <View style={styles.searchContainer}>
         <TextInput
           placeholder="Search for anything"
           placeholderTextColor={'gray'}
-          style={{color: 'black'}}
+          style={{color: 'black', width: '90%'}}
         />
         <Ionicons name="search" color={'black'} size={23} />
       </View>
+      <View style={[styles.header, {paddingTop: 30}]}>
+        <Text style={styles.categoryName}>{route.name}</Text>
+        <DropDownPicker
+          open={open}
+          setOpen={setOpen}
+          setValue={setValue}
+          setList={setList}
+          items={list}
+          value={value}
+          placeholder={'Filter'}
+          containerStyle={{
+            height: 30,
+            width: '50%',
+            zIndex: 10,
+            justifyContent: 'center',
+          }}
+        />
+      </View>
       <FlatGrid
-        data={loading ? [] : items}
+        data={items}
         itemDimension={150}
         style={styles.gridView}
         renderItem={({item}) => (
-          <View style={styles.itemContainer}>
-            <Image
-              source={{
-                uri: `https://www.summitbsa.org/wp-content/uploads/2019/10/placeholder.png?preset=medium&format=webp`,
-              }}
-              style={{flex: 1}}
-            />
-            <Text style={styles.itemName}>{item.productName} </Text>
-          </View>
+          <GridItem
+            name={item.productName}
+            price={item.price.min}
+            image={item.productAsset.preview}
+            onPress={() => onItemClicked(item.slug)}
+          />
         )}
       />
     </SafeAreaView>
@@ -80,6 +118,15 @@ const styles = StyleSheet.create({
     color: COLORS.black,
     fontSize: 23,
   },
+  notify: {
+    backgroundColor: COLORS.primary,
+    width: 15,
+    height: 15,
+    position: 'absolute',
+    borderRadius: 10,
+    borderColor: 'white',
+    borderWidth: 2,
+  },
   text: {
     color: COLORS.primary,
   },
@@ -97,31 +144,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
     flex: 1,
   },
-  itemContainer: {
-    justifyContent: 'flex-end',
-    borderRadius: 5,
-    padding: 5,
-    height: 250,
-  },
-  itemName: {
-    fontSize: 15,
+  categoryName: {
+    fontSize: 20,
     color: '#000',
-    fontWeight: '600',
-  },
-  itemPrice: {
     fontWeight: 'bold',
-    fontSize: 16,
-    color: '#000',
-  },
-  itemPriceContainer: {
-    borderColor: COLORS.primary,
-    borderWidth: 2,
-    borderRadius: 20,
-    padding: 5,
-    alignItems: 'center',
-    marginTop: 10,
-    width: '70%',
   },
 });
 
-export default Product;
+export default Products;

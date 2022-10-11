@@ -3,13 +3,16 @@ import Routes from './routes';
 import {NavigationContainer} from '@react-navigation/native';
 import {ApolloProvider} from '@apollo/client';
 import client from './services/api';
+import {AuthProvider} from './contexts/auth';
 
 const App = () => {
   return (
-    <ApolloProvider client={client}>
-      <NavigationContainer>
-        <Routes />
-      </NavigationContainer>
+    <ApolloProvider client={client} >
+      <AuthProvider>
+        <NavigationContainer>
+          <Routes />
+        </NavigationContainer>
+      </AuthProvider>
     </ApolloProvider>
   );
 };
