@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   StyleSheet,
   Text,
@@ -22,8 +22,9 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import CustomInput from '../../../components/CustomInput';
 
 const EditProfile = ({navigation}) => {
-  const {user} = useAuth();
-  const [updateInfo, {loading, error}] = useUpdateCustomer();
+  const {user, reloadUser} = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [updateInfo, {}] = useUpdateCustomer();
 
   const {
     control,
@@ -39,28 +40,20 @@ const EditProfile = ({navigation}) => {
     },
   });
 
-  const onSubmit = input => {
+  const onSubmit = async input => {
+    setLoading(true);
     const {firstName, lastName, phone} = input;
 
-    updateInfo({
+    await updateInfo({
       variables: {
         firstName: firstName,
         lastName: lastName,
         phoneNumber: phone.replace(/\s/g, ''),
       },
     });
-
-    if (!error) {
-      reset();
-      Alert.alert('Success', 'Updated successfully!', [
-        {
-          text: 'OK',
-          onPress: () => {
-            navigation.goBack();
-          },
-        },
-      ]);
-    }
+    await reloadUser();
+    setLoading(false);
+    navigation.goBack();
   };
 
   return (

@@ -4,7 +4,7 @@ import {
   SafeAreaView,
   StyleSheet,
   View,
-  Pressable,
+  TouchableOpacity,
   TextInput,
 } from 'react-native';
 import {COLORS} from '../../../theme/Color';
@@ -24,7 +24,9 @@ const Products = ({navigation, route}) => {
     {label: 'Lowest Price', value: 'price0'},
     {label: 'Highest Price', value: 'price9'},
   ]);
+
   const [value, setValue] = useState();
+  const [term, setTerm] = useState('');
   const {itemsCart} = useAuth();
 
   const ids = route.params.id;
@@ -33,9 +35,13 @@ const Products = ({navigation, route}) => {
 
   useEffect(() => {
     if (loading === false && data) {
-      setItems(data.search.items);
+      setItems(
+        data.search.items.filter(item =>
+          item.productName.toLowerCase().match(term.trim().toLowerCase()),
+        ),
+      );
     }
-  }, [loading, data]);
+  }, [loading, data, term]);
 
   onItemClicked = slug => {
     navigation.navigate('Product', {productSlug: slug});
@@ -45,27 +51,41 @@ const Products = ({navigation, route}) => {
     <SafeAreaView style={styles.container}>
       <Spinner visible={loading} />
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.openDrawer()}>
+        <TouchableOpacity hitSlop={20} onPress={() => navigation.openDrawer()}>
           <Ionicons name="menu" color={'black'} size={32} />
-        </Pressable>
+        </TouchableOpacity>
         <Text style={styles.textContainer}>
           <Text style={styles.text}>Der</Text>
           <Text>Tinh</Text>
         </Text>
-        <Pressable onPress={() => navigation.navigate('Cart')}>
+        <TouchableOpacity
+          hitSlop={20}
+          onPress={() => navigation.navigate('Cart')}>
           <Ionicons name="cart-outline" color={'black'} size={32} />
-          {!itemsCart || itemsCart === '0' ? null : (
+          {itemsCart && itemsCart?.totalQuantity !== 0 && (
             <View style={styles.notify} />
           )}
-        </Pressable>
+        </TouchableOpacity>
       </View>
       <View style={styles.searchContainer}>
         <TextInput
           placeholder="Search for anything"
           placeholderTextColor={'gray'}
+          onChangeText={setTerm}
+          value={term.trim()}
           style={{color: 'black', width: '90%'}}
         />
-        <Ionicons name="search" color={'black'} size={23} />
+        <TouchableOpacity
+          hitSlop={20}
+          onPress={() => {
+            term.length === 0 || setTerm('');
+          }}>
+          <Ionicons
+            name={term.length === 0 ? 'search' : 'backspace-outline'}
+            color={'black'}
+            size={23}
+          />
+        </TouchableOpacity>
       </View>
       <View style={[styles.header, {paddingTop: 30}]}>
         <Text style={styles.categoryName}>{route.name}</Text>

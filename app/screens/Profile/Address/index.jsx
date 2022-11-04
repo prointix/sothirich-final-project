@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   StyleSheet,
   Text,
@@ -17,14 +17,10 @@ import {useAuth} from '../../../contexts/auth';
 import {useDeleteAddress} from '../../../services/auth';
 
 const Address = ({navigation}) => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [deleteAddress, {error}] = useDeleteAddress();
-  const {user} = useAuth();
+  const {user, reloadUser} = useAuth();
   const screen = Dimensions.get('screen');
-
-  setTimeout(() => {
-    setLoading(false);
-  }, 1000);
 
   const removeAddress = id => {
     Alert.alert('Remove Address', `Are you sure you want to remove?`, [
@@ -37,10 +33,8 @@ const Address = ({navigation}) => {
         onPress: async () => {
           setLoading(true);
           await deleteAddress({variables: {id}});
-
-          setTimeout(() => {
-            setLoading(false);
-          }, 1000);
+          await reloadUser();
+          setLoading(false);
         },
       },
     ]);

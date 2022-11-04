@@ -22,8 +22,8 @@ import {useAuth} from '../../contexts/auth';
 
 const SignIn = ({navigation}) => {
   const [loginUser, {loading}] = useLogin();
-
-  const {login} = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const {reloadUser, reloadCart} = useAuth();
 
   const reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
 
@@ -40,6 +40,7 @@ const SignIn = ({navigation}) => {
   });
 
   const onSubmit = async input => {
+    setIsLoading(true);
     const {email, password} = input;
     const res = await loginUser({
       variables: {
@@ -49,10 +50,12 @@ const SignIn = ({navigation}) => {
     });
 
     if (res.data.login.id && loading === false) {
-      login();
+      await reloadUser();
+      setIsLoading(false);
       navigation.goBack();
     } else {
       // reset();
+      setIsLoading(false);
       Alert.alert(res.data.login.errorCode, res.data.login.message);
     }
   };
@@ -62,7 +65,7 @@ const SignIn = ({navigation}) => {
       <ScrollView style={styles.container} scrollEnabled={false}>
         <SafeAreaView style={styles.container}>
           <KeyboardAvoidingView behavior={'position'}>
-            <Spinner visible={loading} />
+            <Spinner visible={isLoading} />
             <View style={styles.header}>
               <Pressable onPress={() => navigation.goBack()}>
                 <Ionicons name="close" color={'black'} size={32} />

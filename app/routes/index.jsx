@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   createStackNavigator,
   CardStyleInterpolators,
@@ -13,17 +13,16 @@ import Notification from '../screens/Notification';
 import DrawerComponents from '../components/DrawerComponents';
 import Products from '../screens/Home/Category';
 import Product from '../screens/Home/Category/Product';
-import DrawerIcon from '../components/DrawerIcon';
 import SignIn from '../screens/SignIn';
 import SignUp from '../screens/SignUp';
 import Cart from '../screens/Cart';
 import Address from '../screens/Profile/Address';
-import Payment from '../screens/Profile/Payment';
-import Shipping from '../screens/Profile/Shipping';
 import Password from '../screens/Profile/Password';
 import EditProfile from '../screens/Profile/EditProfile';
 import AddAddress from '../screens/Profile/Address/AddAddress';
 import EditAddress from '../screens/Profile/Address/EditAddress';
+import Payment from '../screens/Payment';
+import {useGetAllCategories} from '../services/auth';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -48,10 +47,9 @@ const Routes = () => {
       <Stack.Screen name="EditProfile" component={EditProfile} />
       <Stack.Screen name="Address" component={Address} />
       <Stack.Screen name="Password" component={Password} />
-      <Stack.Screen name="Shipping" component={Shipping} />
-      <Stack.Screen name="Payment" component={Payment} />
       <Stack.Screen name="AddAddress" component={AddAddress} />
       <Stack.Screen name="EditAddress" component={EditAddress} />
+      <Stack.Screen name="Payment" component={Payment} />
     </Stack.Navigator>
   );
 };
@@ -89,111 +87,29 @@ const HomeTab = () => {
 };
 
 const HomeDrawer = () => {
+  const {data} = useGetAllCategories();
+  const [categoryList, setCategoryList] = useState({});
+
+  useEffect(() => {
+    data && setCategoryList(data.collections);
+  }, [data]);
+
   return (
     <Drawer.Navigator
       drawerContent={props => <DrawerComponents {...props} />}
       screenOptions={{
         headerShown: false,
         drawerStyle: {width: '80%'},
-        drawerLabelStyle: {marginLeft: -20},
+        drawerItemStyle: {borderBottomWidth: 0.3},
       }}>
-      <Drawer.Screen
-        name="All Products"
-        component={Home}
-        options={{
-          drawerIcon: () => (
-            <DrawerIcon
-              backgroundColor={COLORS.gray}
-              iconName="albums"
-              iconColor="black"
-            />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="Camera & Photo"
-        component={Products}
-        initialParams={{id: 4}}
-        options={{
-          drawerIcon: () => (
-            <DrawerIcon
-              backgroundColor={COLORS.gray}
-              iconName="camera"
-              iconColor="black"
-            />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="Computers"
-        component={Products}
-        initialParams={{id: 3}}
-        options={{
-          drawerIcon: () => (
-            <DrawerIcon
-              backgroundColor={COLORS.gray}
-              iconName="ios-desktop-sharp"
-              iconColor="black"
-            />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="Equipment"
-        component={Products}
-        initialParams={{id: 9}}
-        options={{
-          drawerIcon: () => (
-            <DrawerIcon
-              backgroundColor={COLORS.gray}
-              iconName="md-hammer"
-              iconColor="black"
-            />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="Footwear"
-        component={Products}
-        initialParams={{id: 10}}
-        options={{
-          drawerIcon: () => (
-            <DrawerIcon
-              backgroundColor={COLORS.gray}
-              iconName="help-sharp"
-              iconColor="black"
-            />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="Furniture"
-        component={Products}
-        initialParams={{id: 6}}
-        options={{
-          drawerIcon: () => (
-            <DrawerIcon
-              backgroundColor={COLORS.gray}
-              iconName="help-sharp"
-              iconColor="black"
-            />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="Plants"
-        component={Products}
-        initialParams={{id: 7}}
-        options={{
-          drawerIcon: () => (
-            <DrawerIcon
-              backgroundColor={COLORS.gray}
-              iconName="ios-leaf"
-              iconColor="black"
-            />
-          ),
-        }}
-      />
+      <Drawer.Screen name="All Products" component={Home} />
+      {categoryList.items?.map(item => (
+        <Drawer.Screen
+          name={item.name}
+          component={Products}
+          initialParams={{id: item.id}}
+        />
+      ))}
     </Drawer.Navigator>
   );
 };

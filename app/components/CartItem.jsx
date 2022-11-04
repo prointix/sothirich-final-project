@@ -8,40 +8,40 @@ import {
 } from 'react-native';
 import React, {useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {COLORS} from '../theme/Color';
-import {useAdjustCart} from '../services/auth';
 import Spinner from 'react-native-loading-spinner-overlay';
+import {useAdjustCart, useRemoveCart} from '../services/auth';
+import {COLORS} from '../theme/Color';
 
-export const ListItem = ({items}) => {
+export const ListItem = ({items, reload}) => {
   const [editCart, {}] = useAdjustCart();
+  const [removeCart, {}] = useRemoveCart();
   const amount = items.quantity;
   const [loading, setLoading] = useState(false);
 
-  const onAddClicked = () => {
+  const onAddClicked = async () => {
     setLoading(true);
-    editCart({
+    await editCart({
       variables: {
         id: items.id,
         quantity: amount + 1,
       },
     });
-    setTimeout(() => {
-      setLoading(false);
-    }, 1500);
+    await reload();
+    setLoading(false);
   };
 
-  const onRemoveClicked = () => {
+  const onRemoveClicked = async () => {
     setLoading(true);
+
     if (amount > 1) {
-      editCart({
+      await editCart({
         variables: {
           id: items.id,
           quantity: amount - 1,
         },
       });
-      setTimeout(() => {
-        setLoading(false);
-      }, 1000);
+      await reload();
+      setLoading(false);
     } else if (amount === 1) {
       setLoading(false);
       Alert.alert(
@@ -54,17 +54,15 @@ export const ListItem = ({items}) => {
           },
           {
             text: 'OK',
-            onPress: () => {
-              editCart({
+            onPress: async () => {
+              setLoading(true);
+              await removeCart({
                 variables: {
                   id: items.id,
-                  quantity: amount - 1,
                 },
               });
-              setLoading(true);
-              setTimeout(() => {
-                setLoading(false);
-              }, 1000);
+              await reload();
+              setLoading(false);
             },
           },
         ],
@@ -75,17 +73,7 @@ export const ListItem = ({items}) => {
   return (
     <View style={styles.listItem}>
       <Spinner visible={loading} />
-      <Image
-        source={{uri: items.featuredAsset.source}}
-        style={{
-          width: 50,
-          height: 50,
-          resizeMode: 'cover',
-          borderRadius: 10,
-          borderWidth: 0.5,
-          borderColor: COLORS.gray,
-        }}
-      />
+      <Image source={{uri: items.featuredAsset.source}} style={styles.img} />
       <View
         style={{
           flex: 1,
@@ -99,9 +87,9 @@ export const ListItem = ({items}) => {
           {items.productVariant.name}
         </Text>
         <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-          <Text style={styles.subText}>
+          <Text style={[styles.subText, {fontWeight: 'bold'}]}>
             ${' '}
-            {(items.linePrice / 100)
+            {(items.unitPrice / 100)
               .toFixed(2)
               .toString()
               .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
@@ -119,7 +107,8 @@ export const ListItem = ({items}) => {
             </Text>
             <TouchableOpacity
               style={[styles.adjustButton, {backgroundColor: COLORS.primary}]}
-              onPress={onAddClicked}>
+              onPress={onAddClicked}
+              hitSlop={20}>
               <Ionicons name="add" size={15} color="white" />
             </TouchableOpacity>
           </View>
@@ -150,5 +139,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 5,
     marginHorizontal: 5,
+  },
+  img: {
+    width: 50,
+    height: 50,
+    resizeMode: 'cover',
+    borderRadius: 10,
+    borderWidth: 0.5,
+    borderColor: COLORS.gray,
   },
 });

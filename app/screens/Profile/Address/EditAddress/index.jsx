@@ -9,13 +9,11 @@ import {
   Keyboard,
   ScrollView,
   KeyboardAvoidingView,
-  Alert,
   Pressable,
-  Image,
 } from 'react-native';
 import {useForm} from 'react-hook-form';
 import {useAuth} from '../../../../contexts/auth';
-import {useAddAddress, useChangeAddress} from '../../../../services/auth';
+import {useChangeAddress} from '../../../../services/auth';
 import Spinner from 'react-native-loading-spinner-overlay';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Fontisto from 'react-native-vector-icons/Fontisto';
@@ -24,14 +22,17 @@ import CustomInput from '../../../../components/CustomInput';
 import countryList from 'react-select-country-list';
 
 const EditAddress = ({navigation, route}) => {
+  const {reloadUser} = useAuth();
   const {address} = route.params;
-  const [EditAddress, {error, loading}] = useChangeAddress();
+  const [EditAddress, {}] = useChangeAddress();
   const [defaultShipping, setDefaultShipping] = useState(
     address.defaultShippingAddress,
   );
   const [defaultBilling, setDefaultBilling] = useState(
     address.defaultBillingAddress,
   );
+
+  const [loading, setLoading] = useState(false);
 
   const {
     control,
@@ -51,6 +52,8 @@ const EditAddress = ({navigation, route}) => {
   });
 
   const onSubmit = async input => {
+    setLoading(true);
+
     const {
       fullName,
       streetLine1,
@@ -62,7 +65,7 @@ const EditAddress = ({navigation, route}) => {
       phone,
     } = input;
 
-    let res = await EditAddress({
+    await EditAddress({
       variables: {
         id: address.id,
         fullName: fullName,
@@ -78,18 +81,9 @@ const EditAddress = ({navigation, route}) => {
       },
     });
 
-    console.log(res);
-
-    if (!error) {
-      Alert.alert('Success', 'Address updated successfully!', [
-        {
-          text: 'OK',
-          onPress: () => {
-            navigation.navigate('Address');
-          },
-        },
-      ]);
-    }
+    await reloadUser();
+    setLoading(false);
+    navigation.goBack();
   };
 
   return (

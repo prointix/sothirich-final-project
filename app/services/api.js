@@ -41,7 +41,19 @@ const client = new ApolloClient({
     afterwareLink,
     httpLink,
   ]),
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          GET_CART_ITEM_QUERY: {
+            merge(existing, incoming) {
+              return incoming;
+            },
+          },
+        },
+      },
+    },
+  }),
 });
 
 export default client;

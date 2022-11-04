@@ -27,16 +27,6 @@ const Profile = ({navigation}) => {
       icon: 'key-outline',
       value: 'Password',
     },
-    {
-      title: 'Shipping',
-      icon: 'boat-outline',
-      value: 'Shipping',
-    },
-    {
-      title: 'Payment',
-      icon: 'cash-outline',
-      value: 'Payment',
-    },
   ];
 
   const ListItem = ({items}) => {

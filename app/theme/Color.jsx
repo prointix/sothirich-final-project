@@ -5,4 +5,5 @@ export const COLORS = {
   black: '#000',
   gray: '#DCDCDC',
   error: '#FF0000',
+  transparent: 'rgba(52, 52, 52, 0.8)',
 };

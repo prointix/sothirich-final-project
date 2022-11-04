@@ -4,7 +4,6 @@ import {
   StyleSheet,
   Text,
   SafeAreaView,
-  Pressable,
   Image,
   ScrollView,
   Dimensions,
@@ -15,8 +14,11 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import RadioButtonRN from 'radio-buttons-react-native';
 import {useAddToCart, useProductDetail} from '../../../../services/auth';
 import {COLORS} from '../../../../theme/Color';
+import {useAuth} from '../../../../contexts/auth';
 
 const Product = ({navigation, route}) => {
+  const {reloadCart} = useAuth();
+  const [loading, setLoading] = useState(false);
   const slug = route.params.productSlug;
   const [items, setItems] = useState({});
   const [addItem, {}] = useAddToCart();
@@ -30,20 +32,23 @@ const Product = ({navigation, route}) => {
 
   const radioList = [];
 
-  const onAddToCart = () => {
-    selectedItem.value &&
-      addItem({
-        variables: {
-          id: selectedItem.id,
-          quantity: amount,
-        },
-      }).then(navigation.goBack());
+  const onAddToCart = async () => {
+    setLoading(true);
+    await addItem({
+      variables: {
+        id: selectedItem.id,
+        quantity: amount,
+      },
+    });
+    await reloadCart();
+    setLoading(false);
+    navigation.goBack();
   };
 
-  const {loading, data} = useProductDetail(slug);
+  const {data} = useProductDetail(slug);
 
   useEffect(() => {
-    if (loading === false && data) {
+    if (data) {
       setItems(data.product);
 
       data.product.variantList?.items.map(item => {
@@ -85,17 +90,17 @@ const Product = ({navigation, route}) => {
         setSelectedItem(radioList[0]);
       }
     }
-  }, [loading, data]);
+  }, [, data]);
 
   return (
     <SafeAreaView style={styles.container}>
       <Spinner visible={loading} />
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()}>
+        <TouchableOpacity hitSlop={20} onPress={() => navigation.goBack()}>
           <View style={styles.iconButton}>
             <Ionicons name="arrow-back-sharp" color={'black'} size={32} />
           </View>
-        </Pressable>
+        </TouchableOpacity>
       </View>
       <ScrollView style={{flex: 1}}>
         <View style={{height: 250}}>
@@ -162,6 +167,7 @@ const Product = ({navigation, route}) => {
               alignItems: 'center',
             }}>
             <TouchableOpacity
+              hitSlop={20}
               onPress={() => setAmount(amount - 1)}
               disabled={amount === 1 ? true : false}>
               <View style={{borderRadius: 20}}>
@@ -176,7 +182,9 @@ const Product = ({navigation, route}) => {
               style={[styles.boldTxt, {fontSize: 18, paddingHorizontal: 8}]}>
               {amount}
             </Text>
-            <TouchableOpacity onPress={() => setAmount(amount + 1)}>
+            <TouchableOpacity
+              hitSlop={20}
+              onPress={() => setAmount(amount + 1)}>
               <View style={{borderRadius: 20}}>
                 <Ionicons name="add-circle" color={COLORS.primary} size={40} />
               </View>

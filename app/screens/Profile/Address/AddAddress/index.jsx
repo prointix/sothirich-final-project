@@ -9,9 +9,7 @@ import {
   Keyboard,
   ScrollView,
   KeyboardAvoidingView,
-  Alert,
   Pressable,
-  Image,
 } from 'react-native';
 import {useForm} from 'react-hook-form';
 import {useAuth} from '../../../../contexts/auth';
@@ -24,8 +22,9 @@ import CustomInput from '../../../../components/CustomInput';
 import countryList from 'react-select-country-list';
 
 const AddAddress = ({navigation}) => {
-  const {user} = useAuth();
-  const [addAddress, {loading, error}] = useAddAddress();
+  const {user, reloadUser} = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [addAddress, {}] = useAddAddress();
   const [defaultShipping, setDefaultShipping] = useState(false);
   const [defaultBilling, setDefaultBilling] = useState(false);
 
@@ -33,7 +32,6 @@ const AddAddress = ({navigation}) => {
     control,
     handleSubmit,
     formState: {errors},
-    reset,
   } = useForm({
     defaultValues: {
       fullName: user?.firstName + ' ' + user?.lastName,
@@ -48,6 +46,7 @@ const AddAddress = ({navigation}) => {
   });
 
   const onSubmit = async input => {
+    setLoading(true);
     const {
       fullName,
       streetLine1,
@@ -59,7 +58,7 @@ const AddAddress = ({navigation}) => {
       phone,
     } = input;
 
-    let res = await addAddress({
+    await addAddress({
       variables: {
         fullName: fullName,
         streetLine1: streetLine1,
@@ -73,20 +72,9 @@ const AddAddress = ({navigation}) => {
         billing: defaultBilling,
       },
     });
-
-    console.log(res);
-
-    if (!error) {
-      reset();
-      Alert.alert('Success', 'Address created successfully!', [
-        {
-          text: 'OK',
-          onPress: () => {
-            navigation.navigate('Address');
-          },
-        },
-      ]);
-    }
+    await reloadUser();
+    setLoading(false);
+    navigation.goBack();
   };
 
   return (

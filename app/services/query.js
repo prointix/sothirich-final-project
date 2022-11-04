@@ -1,5 +1,16 @@
 import {gql} from '@apollo/client';
 
+export const GET_ALL_CATEGORIES_QUERY = gql`
+  query {
+    collections {
+      items {
+        id
+        name
+      }
+    }
+  }
+`;
+
 export const GET_ALL_PRODUCTS_QUERY = gql`
   query {
     products {
@@ -18,8 +29,15 @@ export const GET_ALL_PRODUCTS_QUERY = gql`
 `;
 
 export const GET_PRODUCTS_QUERY = gql`
-  query ($ids: ID, $value: SearchResultSortParameter) {
-    search(input: {groupByProduct: true, collectionId: $ids, sort: $value}) {
+  query ($ids: ID, $value: SearchResultSortParameter, $term: String) {
+    search(
+      input: {
+        groupByProduct: true
+        collectionId: $ids
+        sort: $value
+        term: $term
+      }
+    ) {
       items {
         slug
         productName
@@ -99,7 +117,21 @@ export const GET_CURRENT_USER_QUERY = gql`
         items {
           id
           state
+          code
           totalQuantity
+          subTotal
+          lines {
+            id
+            productVariant {
+              name
+            }
+            featuredAsset {
+              source
+            }
+            quantity
+            unitPrice
+            linePrice
+          }
         }
         totalItems
       }
@@ -183,10 +215,28 @@ export const LOGOUT_MUTATION = gql`
 `;
 
 export const GET_CART_ITEM_QUERY = gql`
-  query GET_CART_ITEM($id: ID!) {
-    order(id: $id) {
+  query {
+    activeOrder {
+      id
+      state
       totalQuantity
       subTotal
+      subTotalWithTax
+      total
+      totalWithTax
+      shipping
+      shippingWithTax
+      taxSummary {
+        taxRate
+        taxTotal
+      }
+      shippingLines {
+        shippingMethod {
+          code
+          name
+        }
+        price
+      }
       lines {
         id
         productVariant {
@@ -197,7 +247,6 @@ export const GET_CART_ITEM_QUERY = gql`
         }
         quantity
         unitPrice
-        linePrice
       }
     }
   }
@@ -206,6 +255,17 @@ export const GET_CART_ITEM_QUERY = gql`
 export const UPDATE_CART_LINE_MUTATION = gql`
   mutation ADJUST_LINE($id: ID!, $quantity: Int!) {
     adjustOrderLine(orderLineId: $id, quantity: $quantity) {
+      ... on ErrorResult {
+        errorCode
+        message
+      }
+    }
+  }
+`;
+
+export const REMOVE_CART_LINE_MUTATION = gql`
+  mutation ($id: ID!) {
+    removeOrderLine(orderLineId: $id) {
       ... on ErrorResult {
         errorCode
         message
@@ -304,6 +364,167 @@ export const UPDATE_ADDRESS_MUTATION = gql`
       }
     ) {
       streetLine1
+    }
+  }
+`;
+
+export const GET_PAYMENT_METHOD_QUERY = gql`
+  query getPayMethod {
+    eligiblePaymentMethods {
+      id
+      name
+      code
+    }
+  }
+`;
+
+export const GET_SHIPPING_METHOD_QUERY = gql`
+  query {
+    eligibleShippingMethods {
+      id
+      price
+      name
+      code
+    }
+  }
+`;
+
+export const SET_SHIPPING_METHOD_MUTATION = gql`
+  mutation setShipMethod($id: ID!) {
+    setOrderShippingMethod(shippingMethodId: $id) {
+      ... on ErrorResult {
+        errorCode
+        message
+      }
+      ... on NoActiveOrderError {
+        errorCode
+        message
+      }
+      ... on OrderModificationError {
+        errorCode
+        message
+      }
+    }
+  }
+`;
+
+export const SET_ORDER_SHIPPING_ADDRESS_MUTATION = gql`
+  mutation (
+    $fullName: String
+    $streetLine1: String!
+    $streetLine2: String
+    $city: String
+    $province: String
+    $postalCode: String
+    $countryCode: String!
+    $phoneNumber: String
+  ) {
+    setOrderShippingAddress(
+      input: {
+        fullName: $fullName
+        streetLine1: $streetLine1
+        streetLine2: $streetLine2
+        city: $city
+        province: $province
+        postalCode: $postalCode
+        countryCode: $countryCode
+        phoneNumber: $phoneNumber
+      }
+    ) {
+      ... on NoActiveOrderError {
+        errorCode
+        message
+      }
+      ... on ErrorResult {
+        errorCode
+        message
+      }
+    }
+  }
+`;
+
+export const SET_ORDER_BILLING_ADDRESS_MUTATION = gql`
+  mutation (
+    $fullName: String
+    $streetLine1: String!
+    $streetLine2: String
+    $city: String
+    $province: String
+    $postalCode: String
+    $countryCode: String!
+    $phoneNumber: String
+  ) {
+    setOrderBillingAddress(
+      input: {
+        fullName: $fullName
+        streetLine1: $streetLine1
+        streetLine2: $streetLine2
+        city: $city
+        province: $province
+        postalCode: $postalCode
+        countryCode: $countryCode
+        phoneNumber: $phoneNumber
+      }
+    ) {
+      ... on NoActiveOrderError {
+        errorCode
+        message
+      }
+      ... on ErrorResult {
+        errorCode
+        message
+      }
+    }
+  }
+`;
+
+export const SET_STATE_MUTATION = gql`
+  mutation changeState($state: String!) {
+    transitionOrderToState(state: $state) {
+      ... on ErrorResult {
+        errorCode
+        message
+      }
+      ... on OrderStateTransitionError {
+        message
+        transitionError
+        fromState
+        toState
+      }
+      ... on Order {
+        state
+      }
+    }
+  }
+`;
+
+export const SET_PAY_METHOD_MUTATION = gql`
+  mutation setPayMethod($method: String!) {
+    addPaymentToOrder(input: {method: $method, metadata: {}}) {
+      ... on OrderPaymentStateError {
+        errorCode
+        message
+      }
+      ... on IneligiblePaymentMethodError {
+        errorCode
+        message
+        eligibilityCheckerMessage
+      }
+      ... on PaymentFailedError {
+        errorCode
+        message
+        paymentErrorMessage
+      }
+      ... on PaymentDeclinedError {
+        errorCode
+        message
+        paymentErrorMessage
+      }
+      ... on Order {
+        payments {
+          method
+        }
+      }
     }
   }
 `;

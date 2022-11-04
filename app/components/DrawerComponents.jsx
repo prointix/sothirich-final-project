@@ -1,4 +1,4 @@
-import {View, Text, StyleSheet, Pressable, Image} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import {
   DrawerContentScrollView,
   DrawerItemList,
@@ -11,16 +11,18 @@ const DrawerComponents = props => {
   return (
     <View style={{flex: 1}}>
       <View style={styles.header}>
-        <Pressable onPress={() => props.navigation.closeDrawer()}>
+        <TouchableOpacity
+          hitSlop={20}
+          onPress={() => props.navigation.closeDrawer()}>
           <Ionicons name="close" color={'black'} size={32} />
-        </Pressable>
+        </TouchableOpacity>
         <Text style={styles.textContainer}>
           <Text style={styles.text}>Der</Text>
           <Text>Tinh</Text>
         </Text>
-        <Pressable>
+        <TouchableOpacity hitSlop={20}>
           <Ionicons name="close" />
-        </Pressable>
+        </TouchableOpacity>
       </View>
       <DrawerContentScrollView {...props}>
         <DrawerItemList {...props} />
@@ -51,5 +53,25 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 100,
     resizeMode: 'contain',
+  },
+  profileTab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 30,
+  },
+  bigText: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: COLORS.black,
+  },
+  editButton: {
+    padding: 5,
+    paddingHorizontal: 15,
+    alignSelf: 'flex-start',
+    borderColor: COLORS.secondary,
+    borderWidth: 2,
+    marginTop: 15,
+    borderRadius: 20,
   },
 });

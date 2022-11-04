@@ -1,57 +1,42 @@
-import React, {useState, useEffect} from 'react';
+import React from 'react';
 import {
   View,
   Text,
   SafeAreaView,
-  Pressable,
   StyleSheet,
   FlatList,
   TouchableOpacity,
   Image,
 } from 'react-native';
-import Spinner from 'react-native-loading-spinner-overlay';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {ListItem} from '../../components/CartItem';
 import {useAuth} from '../../contexts/auth';
-import {useCartItem} from '../../services/auth';
 import {COLORS} from '../../theme/Color';
 
 const Cart = ({navigation}) => {
-  const {cartID} = useAuth();
-  const {data, loading} = useCartItem(cartID);
-  const [item, setItem] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  setTimeout(() => {
-    setIsLoading(false);
-  }, 1200);
-
-  useEffect(() => {
-    if (loading === false) {
-      setItem(data?.order);
-    }
-  }, [loading, data]);
+  const {itemsCart, reloadCart} = useAuth();
 
   return (
     <SafeAreaView style={styles.container}>
-      <Spinner visible={isLoading} />
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()}>
+        <TouchableOpacity hitSlop={20} onPress={() => navigation.goBack()}>
           <View style={[styles.iconButton, {backgroundColor: COLORS.gray}]}>
             <Ionicons name="arrow-back-sharp" color={'black'} size={32} />
           </View>
-        </Pressable>
+        </TouchableOpacity>
         <Text style={styles.headerTxt}>Shop Cart</Text>
         <View style={styles.iconButton}>
           <Ionicons name="arrow-back-sharp" />
         </View>
       </View>
-      {item?.totalQuantity ? (
+      {itemsCart?.totalQuantity ? (
         <>
           <View style={{flex: 1}}>
             <FlatList
-              data={item?.lines}
-              renderItem={({item}) => <ListItem items={item} />}
+              data={itemsCart.lines}
+              renderItem={({item}) => (
+                <ListItem items={item} reload={() => reloadCart()} />
+              )}
               style={{padding: 15}}
             />
           </View>
@@ -69,7 +54,7 @@ const Cart = ({navigation}) => {
                     {fontSize: 18, paddingHorizontal: 8},
                   ]}>
                   ${' '}
-                  {(item?.subTotal / 100)
+                  {(itemsCart.subTotal / 100)
                     .toFixed(2)
                     .toString()
                     .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
@@ -79,11 +64,12 @@ const Cart = ({navigation}) => {
                 <TouchableOpacity
                   style={[
                     styles.button,
-                    item?.totalQuantity
+                    itemsCart.totalQuantity
                       ? {backgroundColor: COLORS.primary}
                       : {backgroundColor: COLORS.gray},
                   ]}
-                  disabled={item?.totalQuantity ? false : true}>
+                  disabled={itemsCart.totalQuantity ? false : true}
+                  onPress={() => navigation.replace('Payment')}>
                   <Text style={{color: 'white'}}> Proceed to Payment</Text>
                 </TouchableOpacity>
               </View>

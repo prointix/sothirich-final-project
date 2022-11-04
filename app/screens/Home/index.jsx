@@ -4,7 +4,7 @@ import {
   SafeAreaView,
   StyleSheet,
   View,
-  Pressable,
+  TouchableOpacity,
   TextInput,
 } from 'react-native';
 import {COLORS} from '../../theme/Color';
@@ -17,15 +17,19 @@ import {useAuth} from '../../contexts/auth';
 
 const Home = ({navigation}) => {
   const [items, setItems] = useState([]);
+  const [term, setTerm] = useState('');
   const {loading, data} = useAllProducts();
-
   const {itemsCart, signed} = useAuth();
 
   useEffect(() => {
     if (loading === false && data) {
-      setItems(data.products.items);
+      setItems(
+        data.products.items.filter(item =>
+          item.name.toLowerCase().match(term.trim().toLowerCase()),
+        ),
+      );
     }
-  }, [loading, data]);
+  }, [loading, data, term]);
 
   onItemClicked = slug => {
     navigation.navigate('Product', {productSlug: slug});
@@ -35,30 +39,43 @@ const Home = ({navigation}) => {
     <SafeAreaView style={styles.container}>
       <Spinner visible={loading} />
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.openDrawer()}>
+        <TouchableOpacity hitSlop={20} onPress={() => navigation.openDrawer()}>
           <Ionicons name="menu" color={'black'} size={32} />
-        </Pressable>
+        </TouchableOpacity>
         <Text style={styles.textContainer}>
           <Text style={styles.text}>Der</Text>
           <Text>Tinh</Text>
         </Text>
-        <Pressable
+        <TouchableOpacity
+          hitSlop={20}
           onPress={() =>
             signed ? navigation.navigate('Cart') : navigation.navigate('SignIn')
           }>
           <Ionicons name="cart-outline" color={'black'} size={32} />
-          {!itemsCart || itemsCart === '0' ? null : (
+          {itemsCart && itemsCart?.totalQuantity !== 0 && (
             <View style={styles.notify} />
           )}
-        </Pressable>
+        </TouchableOpacity>
       </View>
       <View style={styles.searchContainer}>
         <TextInput
           placeholder="Search for anything"
           placeholderTextColor={'gray'}
+          onChangeText={setTerm}
+          value={term}
           style={{color: 'black', width: '90%'}}
         />
-        <Ionicons name="search" color={'black'} size={23} />
+        <TouchableOpacity
+          hitSlop={20}
+          onPress={() => {
+            term.length === 0 || setTerm('');
+          }}>
+          <Ionicons
+            name={term.length === 0 ? 'search' : 'backspace-outline'}
+            color={'black'}
+            size={23}
+          />
+        </TouchableOpacity>
       </View>
       <FlatGrid
         data={items}
